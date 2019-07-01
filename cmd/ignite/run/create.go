@@ -7,14 +7,16 @@ import (
 
 	"github.com/spf13/pflag"
 
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
-	"github.com/weaveworks/ignite/pkg/source"
 	"github.com/weaveworks/ignite/pkg/util"
+	"github.com/weaveworks/ignite/pkg/source"
+	"github.com/weaveworks/ignite/pkg/snapshotter"
 )
 
 type SSHFlag struct {
@@ -69,10 +71,9 @@ type CreateFlags struct {
 
 type createOptions struct {
 	*CreateFlags
-	image        *imgmd.ImageMetadata
-	kernel       source.Source
-	allVMs       []metadata.AnyMetadata
-	newVM        *vmmd.VMMetadata
+	image        *snapshotter.Image
+	kernel       *v1alpha1.ImageSource
+	newVM        *snapshotter.VM
 	size         ignitemeta.Size
 	memory       ignitemeta.Size
 	fileMappings map[string]string
@@ -94,15 +95,8 @@ func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, imageMatch string) 
 		co.KernelName = constants.DEFAULT_KERNEL
 	}
 
-	co.kernel, err = source.NewDockerSource(cf.KernelName)
-	if err != nil {
-		return nil, err
-	}
-
-	if allVMs, err := l.VMs(); err == nil {
-		co.allVMs = *allVMs
-	} else {
-		return nil, err
+	co.kernel = &v1alpha1.ImageSource{
+		Name: co.KernelName,
 	}
 
 	// Parse the given overlay size
