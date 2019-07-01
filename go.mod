@@ -29,5 +29,6 @@ require (
 	google.golang.org/grpc v1.21.1 // indirect
 	gotest.tools v2.2.0+incompatible // indirect
 	k8s.io/apimachinery v0.0.0-20190612205821-1799e75a0719
+	k8s.io/code-generator v0.0.0-20190627204931-86aa6a6a5cf3 // indirect
 	sigs.k8s.io/yaml v1.1.0
 )

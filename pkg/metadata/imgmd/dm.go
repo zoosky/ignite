@@ -6,18 +6,18 @@ import (
 	"os"
 	"path"
 
+	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/dm"
-	"github.com/weaveworks/ignite/pkg/format"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/source"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
 var (
-	dataDevSize = format.DataFrom(100 * 1073741824) // 100 GB
-	blockSize   = format.DataFrom(65536)            // Pool allocation block size 128 (* 512 = 65536)
-	extraSize   = format.DataFrom(100 * 1048576)    // Additional space to add to the image for the ext4 partition (100 MB)
+	dataDevSize = ignitemeta.NewSizeFromBytes(100 * 1073741824) // 100 GB
+	blockSize   = ignitemeta.NewSizeFromSector(128)             // Pool allocation block size 128 (* 512 = 65536)
+	extraSize   = ignitemeta.NewSizeFromBytes(100 * 1048576)    // Additional space to add to the image for the ext4 partition (100 MB)
 )
 
 func (md *ImageMetadata) NewDMPool() error {
@@ -41,7 +41,7 @@ func (md *ImageMetadata) NewDMPool() error {
 
 // Allocate the thin provisioning data and metadata files
 func allocateDMFiles(metadataFile, dataFile string) error {
-	thinFiles := map[string]format.DataSize{
+	thinFiles := map[string]imagemeta.Size{
 		metadataFile: calcMetadataDevSize(dataDevSize),
 		dataFile:     dataDevSize,
 	}
@@ -84,7 +84,7 @@ func (md *ImageMetadata) newImageVolume(src source.Source) (*util.MountPoint, er
 	return mountPoint, nil
 }
 
-func (md *ImageMetadata) CreateOverlay(kernelSrc source.Source, requestedSize format.DataSize, id *metadata.ID) (*dm.Device, error) {
+func (md *ImageMetadata) CreateOverlay(kernelSrc source.Source, requestedSize ignitemeta.Size, id *metadata.ID) (*dm.Device, error) {
 	var err error
 	p := util.NewPrefixer()
 	pool := md.ImageOD().Pool
@@ -140,10 +140,10 @@ func (md *ImageMetadata) CreateOverlay(kernelSrc source.Source, requestedSize fo
 	return overlay, nil
 }
 
-func calcMetadataDevSize(dataDevSize format.DataSize) format.DataSize {
+func calcMetadataDevSize(dataDevSize ignitemeta.Size) ignitemeta.Size {
 	// The minimum size is 2 MB and the maximum size is 16 GB
-	minSize := format.DataFrom(2 * 1048576)
-	maxSize := format.DataFrom(16 * 1073741824)
+	minSize := ignitemeta.NewSizeFromBytes(2 * 1048576)
+	maxSize := ignitemeta.NewSizeFromBytes(16 * 1073741824)
 
-	return format.DataFrom(48 * dataDevSize.Bytes() / blockSize.Bytes()).Min(maxSize).Max(minSize)
+	return ignitemeta.NewSizeFromBytes(48 * dataDevSize.Bytes() / blockSize.Bytes()).Min(maxSize).Max(minSize)
 }

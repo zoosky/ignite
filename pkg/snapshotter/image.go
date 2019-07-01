@@ -6,7 +6,6 @@ import (
 	"github.com/weaveworks/ignite/pkg/layer"
 	"github.com/weaveworks/ignite/pkg/source"
 	"github.com/weaveworks/ignite/pkg/util"
-	"image"
 )
 
 // This package represents image objects, which reside in /var/lib/firecracker/image/{id}/metadata.json

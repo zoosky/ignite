@@ -2,10 +2,11 @@ package snapshotter
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
-	"k8s.io/apimachinery/pkg/runtime"
 	"os"
 	"path"
+
+	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
+	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"

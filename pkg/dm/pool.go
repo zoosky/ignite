@@ -5,18 +5,18 @@ import (
 	"path"
 
 	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
-
+	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type Pool struct {
 	v1alpha1.Pool
-	free v1alpha1.DMID
+	free ignitemeta.DMID
 }
 
 var poolName = util.NewPrefixer().Prefix("pool")
 
-func NewPool(metadataSize, dataSize, allocationSize v1alpha1.Size, metadataPath, dataPath string) *Pool {
+func NewPool(metadataSize, dataSize, allocationSize ignitemeta.Size, metadataPath, dataPath string) *Pool {
 	return &Pool{
 		Pool: v1alpha1.Pool{
 			Spec: v1alpha1.PoolSpec{
@@ -27,7 +27,7 @@ func NewPool(metadataSize, dataSize, allocationSize v1alpha1.Size, metadataPath,
 				DataPath:       dataPath,
 			},
 		},
-		free: v1alpha1.NewDMID(0),
+		free: ignitemeta.NewDMID(0),
 	}
 }
 
@@ -43,15 +43,15 @@ func NewPool(metadataSize, dataSize, allocationSize v1alpha1.Size, metadataPath,
 //	return nil, fmt.Errorf("device %q not found in pool", name)
 //}
 
-func (p *Pool) getID(device *Device) v1alpha1.DMID {
+func (p *Pool) getID(device *Device) ignitemeta.DMID {
 	// If the querying for nil, return the pool's ID
 	if device == nil {
-		return v1alpha1.NewPoolDMID()
+		return ignitemeta.NewPoolDMID()
 	}
 
 	for i, d := range p.Status.Devices {
 		if d == device.PoolDevice {
-			return v1alpha1.NewDMID(i)
+			return ignitemeta.NewDMID(i)
 		}
 	}
 
@@ -61,7 +61,7 @@ func (p *Pool) getID(device *Device) v1alpha1.DMID {
 }
 
 // GetDevice dynamically spawns a device from a v1alpha1.PoolDevice
-func (p *Pool) GetDevice(id v1alpha1.DMID) *Device {
+func (p *Pool) GetDevice(id ignitemeta.DMID) *Device {
 	// If querying for the pool's ID, return nil
 	if id.Pool() {
 		return nil
@@ -85,11 +85,11 @@ func (p *Pool) GetDevice(id v1alpha1.DMID) *Device {
 }
 
 // This is a custom iterator to iterate over existing devices only (it skips nil slots)
-func (p *Pool) ForDevices(iterFunc func(v1alpha1.DMID, *Device) error) error {
+func (p *Pool) ForDevices(iterFunc func(ignitemeta.DMID, *Device) error) error {
 	for i := 0; i < len(p.Status.Devices); i++ {
 		spec := p.Status.Devices[i]
 		if spec != nil {
-			id := v1alpha1.NewDMID(i)
+			id := ignitemeta.NewDMID(i)
 			if err := iterFunc(id, p.GetDevice(id)); err != nil {
 				return err
 			}
@@ -141,26 +141,26 @@ func (p *Pool) active() bool {
 
 // This returns a free ID in the pool
 // TODO: Check that this works correctly
-func (p *Pool) newID() v1alpha1.DMID {
+func (p *Pool) newID() ignitemeta.DMID {
 	index := p.free.Index()
 	nDevices := len(p.Status.Devices)
 
 	if index < nDevices {
 		for i := index + 1; i <= nDevices; i++ {
 			if i == nDevices || p.Status.Devices[i] == nil {
-				p.free = v1alpha1.NewDMID(i)
+				p.free = ignitemeta.NewDMID(i)
 				break
 			}
 		}
 	} else {
 		p.Status.Devices = append(p.Status.Devices, nil)
-		p.free = v1alpha1.NewDMID(len(p.Status.Devices))
+		p.free = ignitemeta.NewDMID(len(p.Status.Devices))
 	}
 
-	return v1alpha1.NewDMID(index)
+	return ignitemeta.NewDMID(index)
 }
 
-func (p *Pool) newDevice(genFunc func(v1alpha1.DMID) (*Device, error)) (*Device, error) {
+func (p *Pool) newDevice(genFunc func(ignitemeta.DMID) (*Device, error)) (*Device, error) {
 	free := p.free
 	id := p.newID()
 
@@ -174,7 +174,7 @@ func (p *Pool) newDevice(genFunc func(v1alpha1.DMID) (*Device, error)) (*Device,
 	return device, nil
 }
 
-func (p *Pool) Remove(id v1alpha1.DMID) {
+func (p *Pool) Remove(id ignitemeta.DMID) {
 	if p.GetDevice(id) != nil {
 		p.Status.Devices[id.Index()] = nil
 

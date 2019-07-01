@@ -7,14 +7,14 @@ import (
 
 	"github.com/spf13/pflag"
 
+	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
-	"github.com/weaveworks/ignite/pkg/util"
 	"github.com/weaveworks/ignite/pkg/metadata/loader"
-	"github.com/weaveworks/ignite/pkg/format"
+	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/source"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type SSHFlag struct {
@@ -73,8 +73,8 @@ type createOptions struct {
 	kernel       source.Source
 	allVMs       []metadata.AnyMetadata
 	newVM        *vmmd.VMMetadata
-	size         format.DataSize
-	memory       format.DataSize
+	size         ignitemeta.Size
+	memory       ignitemeta.Size
 	fileMappings map[string]string
 }
 

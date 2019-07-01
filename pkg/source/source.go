@@ -6,8 +6,11 @@ import (
 	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 )
 
-// Reader returns a io.ReadCloser to tar file data
+// Source represents a source for VM images
 type Source interface {
+	// ID returns the ID of the source
+	ID() string
+
 	// Parse verifies the ImageSource, fills in any missing fields and prepares the reader
 	Parse(*v1alpha1.ImageSource) error
 

@@ -9,6 +9,7 @@ IS_DIRTY:=$(shell echo ${GIT_VERSION} | grep -o dirty | wc -l)
 WHAT?=ignite
 PROJECT = github.com/weaveworks/ignite
 APIS_DIR = ${PROJECT}/pkg/apis
+API_DIRS = ${APIS_DIR}/ignite/v1alpha1,${APIS_DIR}/meta/v1alpha1
 CACHE_DIR = /tmp/go-cache
 
 all: binary
@@ -65,18 +66,18 @@ dockerized-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversio
 	# Let the boilerplate be empty
 	touch /tmp/boilerplate
 	/go/bin/deepcopy-gen \
-		--input-dirs ${APIS_DIR}/ignite/v1alpha1 \
+		--input-dirs ${API_DIRS} \
 		--bounding-dirs ${APIS_DIR} \
 		-O zz_generated.deepcopy \
 		-h /tmp/boilerplate 
 
 	/go/bin/defaulter-gen \
-		--input-dirs ${APIS_DIR}/ignite/v1alpha1 \
+		--input-dirs ${API_DIRS} \
 		-O zz_generated.defaults \
 		-h /tmp/boilerplate
 
 	/go/bin/conversion-gen \
-		--input-dirs ${APIS_DIR}/ignite/v1alpha1 \
+		--input-dirs ${API_DIRS} \
 		-O zz_generated.conversion \
 		-h /tmp/boilerplate
 

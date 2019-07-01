@@ -1,15 +1,14 @@
 package snapshotter
 
 import (
+	"log"
+
 	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/dm"
 	"github.com/weaveworks/ignite/pkg/layer/image"
 	"github.com/weaveworks/ignite/pkg/layer/kernel"
 	"github.com/weaveworks/ignite/pkg/layer/resize"
-	"github.com/weaveworks/ignite/pkg/metadata"
-	"github.com/weaveworks/ignite/pkg/source"
 	"github.com/weaveworks/ignite/pkg/util"
-	"log"
 )
 
 func (s *Snapshotter) genResizeLayer(image *image.Image, size v1alpha1.Size) (*dm.Device, error) {

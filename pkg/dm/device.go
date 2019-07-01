@@ -2,14 +2,14 @@ package dm
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/layer"
 	"log"
 	"os/exec"
 	"path"
 
+	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
-
+	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/layer"
 	"github.com/weaveworks/ignite/pkg/source"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -26,7 +26,7 @@ type Device struct {
 var _ blockDevice = &Device{}
 
 // Additional space to add to volumes to compensate for the ext4 partition
-var extraSize = v1alpha1.NewSizeFromBytes(constants.POOL_VOLUME_EXTRA_SIZE)
+var extraSize = ignitemeta.NewSizeFromBytes(constants.POOL_VOLUME_EXTRA_SIZE)
 
 func (p *Pool) CreateVolume(layer layer.Layer) (*Device, error) {
 	// The pool needs to be active for this
@@ -34,7 +34,7 @@ func (p *Pool) CreateVolume(layer layer.Layer) (*Device, error) {
 		return nil, err
 	}
 
-	if volume, err := p.newDevice(func(id v1alpha1.DMID) (*Device, error) {
+	if volume, err := p.newDevice(func(id ignitemeta.DMID) (*Device, error) {
 		if err := dmsetup("message", p.Path(), "0", fmt.Sprintf("create_thin %s", id)); err != nil {
 			return nil, err
 		}
@@ -64,7 +64,7 @@ func (d *Device) CreateSnapshot(layer layer.Layer) (*Device, error) {
 		return nil, err
 	}
 
-	if snapshot, err := d.pool.newDevice(func(id v1alpha1.DMID) (*Device, error) {
+	if snapshot, err := d.pool.newDevice(func(id ignitemeta.DMID) (*Device, error) {
 		if err := dmsetup("suspend", d.Path()); err != nil {
 			return nil, err
 		}
@@ -174,7 +174,7 @@ func (d *Device) Import(src source.Source) (*util.MountPoint, error) {
 	return mountPoint, nil
 }
 
-func (d *Device) name(id v1alpha1.DMID) string {
+func (d *Device) name(id ignitemeta.DMID) string {
 	return util.NewPrefixer().Prefix(id.String())
 }
 

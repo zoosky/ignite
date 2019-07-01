@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -14,9 +15,9 @@ func SetDefaults_ImageSource(obj *ImageSource) {
 }
 
 func SetDefaults_PoolSpec(obj *PoolSpec) {
-	// TODO: These might be nil instead of EmptySize
-	if obj.AllocationSize == EmptySize {
-		obj.AllocationSize = NewSizeFromSectors(constants.POOL_ALLOCATION_SIZE_SECTORS)
+	// TODO: These might be nil instead of ignitemeta.EmptySize
+	if obj.AllocationSize == ignitemeta.EmptySize {
+		obj.AllocationSize = ignitemeta.NewSizeFromSectors(constants.POOL_ALLOCATION_SIZE_SECTORS)
 	}
 
 	if len(obj.MetadataPath) == 0 {
@@ -33,13 +34,13 @@ func SetDefaults_VMSpec(obj *VMSpec) {
 		obj.CPUs = constants.VM_DEFAULT_CPUS
 	}
 
-	// TODO: These might be nil instead of EmptySize
-	if obj.Memory == EmptySize {
-		obj.Memory = NewSizeFromBytes(constants.VM_DEFAULT_MEMORY)
+	// TODO: These might be nil instead of ignitemeta.EmptySize
+	if obj.Memory == ignitemeta.EmptySize {
+		obj.Memory = ignitemeta.NewSizeFromBytes(constants.VM_DEFAULT_MEMORY)
 	}
 
-	if obj.Size == EmptySize {
-		obj.Size = NewSizeFromBytes(constants.VM_DEFAULT_SIZE)
+	if obj.Size == ignitemeta.EmptySize {
+		obj.Size = ignitemeta.NewSizeFromBytes(constants.VM_DEFAULT_SIZE)
 	}
 }
 

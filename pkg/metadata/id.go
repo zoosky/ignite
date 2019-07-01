@@ -9,7 +9,6 @@ import (
 	"path"
 
 	"github.com/weaveworks/ignite/pkg/source"
-
 	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/util"
 )

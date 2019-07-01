@@ -23,8 +23,6 @@ func (om *ObjectMeta) GetUID() types.UID {
 	return om.UID
 }
 
-// TODO: We should maybe move this to a metav1 package once we're happy with this
-
 // Size specifies a common unit for data sizes
 type Size struct {
 	datasize.ByteSize

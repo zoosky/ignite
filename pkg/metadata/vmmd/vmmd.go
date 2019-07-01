@@ -3,8 +3,7 @@ package vmmd
 import (
 	"encoding/json"
 
-	"github.com/weaveworks/ignite/pkg/format"
-
+	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
@@ -53,16 +52,16 @@ type VMMetadata struct {
 type VMObjectData struct {
 	ImageID      *metadata.ID
 	KernelID     *metadata.ID
-	Size         format.DataSize
+	Size         ignitemeta.Size
 	State        state
 	VCPUs        int64
-	Memory       format.DataSize
+	Memory       ignitemeta.Size
 	IPAddrs      IPAddrs
 	PortMappings PortMappings
 	KernelCmd    string
 }
 
-func NewVMObjectData(imageID, kernelID *metadata.ID, size format.DataSize, vCPUs int64, memory format.DataSize, kernelCmd string) *VMObjectData {
+func NewVMObjectData(imageID, kernelID *metadata.ID, size ignitemeta.Size, vCPUs int64, memory ignitemeta.Size, kernelCmd string) *VMObjectData {
 	return &VMObjectData{
 		KernelID:  kernelID,
 		ImageID:   imageID,

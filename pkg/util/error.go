@@ -14,7 +14,7 @@ func (p *Panic2Err) Recover() {
 }
 
 func (p *Panic2Err) Check() error {
-
+	return nil
 }
 
 type ChainError struct {

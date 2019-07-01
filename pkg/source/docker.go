@@ -3,12 +3,13 @@ package source
 import (
 	"fmt"
 	"io"
-	"k8s.io/apimachinery/pkg/util/json"
 	"log"
 	"os/exec"
 
-	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	"k8s.io/apimachinery/pkg/util/json"
 
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -73,6 +74,10 @@ func parseInspect(source string) (*inspect, error) {
 	return data, nil
 }
 
+func (ds *DockerSource) ID() string {
+	return ds.imageID
+}
+
 func (ds *DockerSource) Parse(input *v1alpha1.ImageSource) error {
 	// Use the ID to match the image
 	// If it's not given, fall back to the name
@@ -108,7 +113,7 @@ func (ds *DockerSource) Parse(input *v1alpha1.ImageSource) error {
 	input.Type = v1alpha1.ImageSourceTypeDocker
 	input.ID = imageData.ID
 	input.Name = imageData.RepoTags[0]
-	input.Size = v1alpha1.NewSizeFromBytes(imageData.Size)
+	input.Size = ignitemeta.NewSizeFromBytes(imageData.Size)
 
 	ds.imageID = input.ID
 	return nil
