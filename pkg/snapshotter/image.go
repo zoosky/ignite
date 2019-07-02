@@ -10,19 +10,11 @@ import (
 
 // This package represents image objects, which reside in /var/lib/firecracker/image/{id}/metadata.json
 type Image struct {
-	v1alpha1.Image
+	*v1alpha1.Image
 	device *dm.Device
 }
 
-func NewImage(image v1alpha1.Image, device *dm.Device) *Image {
-	return &Image{
-		Image:  image,
-		device: device,
-	}
-}
-
-func (i *Image) Load() {}
-
+// TODO: This should trigger the generation of a new image
 func (i *Image) Import() (*util.MountPoint, error) {
 	volume, err := i.device.CreateVolume(i)
 	if err != nil {

@@ -3,6 +3,7 @@ package v1alpha1
 import (
 	"encoding/json"
 	"fmt"
+	"k8s.io/apimachinery/pkg/runtime"
 	"strconv"
 
 	"github.com/c2h5oh/datasize"
@@ -26,6 +27,7 @@ func (o *ObjectMeta) GetUID() types.UID {
 // All types implementing Object conform to this
 // interface, it's mainly used for filtering
 type Object interface {
+	runtime.Object
 	GetName() string
 	GetUID() types.UID
 }

@@ -103,6 +103,7 @@ func MatchPrefix(prefix string, fields ...string) []string {
 		if strings.HasPrefix(str, prefix) {
 			prefixMatches = append(prefixMatches, str)
 		}
+
 		if str == prefix {
 			exactMatches = append(exactMatches, str)
 		}

@@ -6,13 +6,7 @@ import (
 )
 
 type Resize struct {
-	layer
-}
-
-func NewResize(device *dm.Device) *Resize {
-	return &Resize{
-		newLayer(device),
-	}
+	device *dm.Device
 }
 
 func (r *Resize) ID() *v1alpha1.DMID {

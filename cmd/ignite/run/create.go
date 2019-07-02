@@ -2,6 +2,7 @@ package run
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/filtering/filter"
 	"path"
 	"strings"
 
@@ -14,9 +15,9 @@ import (
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
-	"github.com/weaveworks/ignite/pkg/util"
-	"github.com/weaveworks/ignite/pkg/source"
 	"github.com/weaveworks/ignite/pkg/snapshotter"
+	"github.com/weaveworks/ignite/pkg/source"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type SSHFlag struct {
@@ -79,10 +80,15 @@ type createOptions struct {
 	fileMappings map[string]string
 }
 
-func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, imageMatch string) (*createOptions, error) {
+func (cf *CreateFlags) NewCreateOptions(ss *snapshotter.Snapshotter, imageMatch string) (*createOptions, error) {
 	var err error
 	co := &createOptions{CreateFlags: cf}
 
+	if co.image, err = ss.GetImage(filter.NewIDNameFilter(imageMatch)); err != nil {
+		return nil, err
+	}
+
+	// Old
 	if allImages, err := l.Images(); err == nil {
 		if co.image, err = allImages.MatchSingle(imageMatch); err != nil {
 			return nil, err
@@ -93,6 +99,14 @@ func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, imageMatch string) 
 
 	if len(co.KernelName) == 0 {
 		co.KernelName = constants.DEFAULT_KERNEL
+	}
+
+	// TODO: Filter that checks if image contains wanted kernel and if it has the correct size
+	if kernel, err := ss.GetKernel(filter.NewIDNameFilter(co.KernelName)); err != nil {
+		switch err.(type) {
+		case snapshotter.ErrNonexistent:
+
+		}
 	}
 
 	co.kernel = &v1alpha1.ImageSource{

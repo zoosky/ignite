@@ -9,39 +9,24 @@ import (
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
+var (
+	poolName = util.NewPrefixer().Prefix("pool")
+)
+
 type Pool struct {
 	v1alpha1.Pool
-	free ignitemeta.DMID
+
+	free         ignitemeta.DMID
+	freeComputed bool
 }
 
-var poolName = util.NewPrefixer().Prefix("pool")
-
-func NewPool(metadataSize, dataSize, allocationSize ignitemeta.Size, metadataPath, dataPath string) *Pool {
+// NewPool creates a new Pool object
+// The Pool is stateless, so this can also be used to load a configuration
+func NewPool(poolMeta *v1alpha1.Pool) *Pool {
 	return &Pool{
-		Pool: v1alpha1.Pool{
-			Spec: v1alpha1.PoolSpec{
-				MetadataSize:   metadataSize,
-				DataSize:       dataSize,
-				AllocationSize: allocationSize,
-				MetadataPath:   metadataPath,
-				DataPath:       dataPath,
-			},
-		},
-		free: ignitemeta.NewDMID(0),
+		Pool: *poolMeta,
 	}
 }
-
-//func (p *Pool) Get(name string) (*Device, error) {
-//	fmt.Printf("%#v\n", p.devices)
-//
-//	for _, device := range p.devices {
-//		if device.name == name {
-//			return device, nil
-//		}
-//	}
-//
-//	return nil, fmt.Errorf("device %q not found in pool", name)
-//}
 
 func (p *Pool) getID(device *Device) ignitemeta.DMID {
 	// If the querying for nil, return the pool's ID
@@ -99,10 +84,26 @@ func (p *Pool) ForDevices(iterFunc func(ignitemeta.DMID, *Device) error) error {
 	return nil
 }
 
+func (p *Pool) allocate() error {
+	// Allocate the backing files (if not allocated already)
+	if err := allocateBackingFile(p.Spec.MetadataPath, p.Spec.MetadataSize); err != nil {
+		return fmt.Errorf("failed to allocate metadata backing file: %v", err)
+	}
+
+	if err := allocateBackingFile(p.Spec.DataPath, p.Spec.DataSize); err != nil {
+		return fmt.Errorf("failed to allocate data backing file: %v", err)
+	}
+}
+
 func (p *Pool) activate() error {
 	// Don't try to activate an already active pool
 	if p.active() {
 		return nil
+	}
+
+	// Trigger allocation
+	if err := p.allocate(); err != nil {
+		return err
 	}
 
 	// Activate the backing devices
@@ -134,15 +135,46 @@ func (p *Pool) Path() string {
 	return path.Join("/dev/mapper", poolName)
 }
 
+func (p *Pool) Size() int {
+	var size int
+
+	for i := 0; i < len(p.Status.Devices); i++ {
+		if p.Status.Devices[i] != nil {
+			size++
+		}
+	}
+
+	return size
+}
+
 // If /dev/mapper/<name> exists the pool is active
 func (p *Pool) active() bool {
 	return util.FileExists(p.Path())
 }
 
+func (p *Pool) getFree() ignitemeta.DMID {
+	computeFree := func() int {
+		for i, device := range p.Status.Devices {
+			if device == nil {
+				return i
+			}
+		}
+
+		return len(p.Status.Devices)
+	}
+
+	if !p.freeComputed {
+		p.free = ignitemeta.NewDMID(computeFree())
+		p.freeComputed = true
+	}
+
+	return p.free
+}
+
 // This returns a free ID in the pool
 // TODO: Check that this works correctly
 func (p *Pool) newID() ignitemeta.DMID {
-	index := p.free.Index()
+	index := p.getFree().Index()
 	nDevices := len(p.Status.Devices)
 
 	if index < nDevices {
@@ -161,7 +193,7 @@ func (p *Pool) newID() ignitemeta.DMID {
 }
 
 func (p *Pool) newDevice(genFunc func(ignitemeta.DMID) (*Device, error)) (*Device, error) {
-	free := p.free
+	free := p.getFree()
 	id := p.newID()
 
 	device, err := genFunc(id)
@@ -178,7 +210,7 @@ func (p *Pool) Remove(id ignitemeta.DMID) {
 	if p.GetDevice(id) != nil {
 		p.Status.Devices[id.Index()] = nil
 
-		if p.free.Index() > id.Index() {
+		if p.getFree().Index() > id.Index() {
 			p.free = id
 		}
 	}

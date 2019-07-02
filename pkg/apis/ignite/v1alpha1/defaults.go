@@ -15,9 +15,16 @@ func SetDefaults_ImageSource(obj *ImageSource) {
 }
 
 func SetDefaults_PoolSpec(obj *PoolSpec) {
-	// TODO: These might be nil instead of ignitemeta.EmptySize
 	if obj.AllocationSize == ignitemeta.EmptySize {
 		obj.AllocationSize = ignitemeta.NewSizeFromSectors(constants.POOL_ALLOCATION_SIZE_SECTORS)
+	}
+
+	if obj.DataSize == ignitemeta.EmptySize {
+		obj.AllocationSize = ignitemeta.NewSizeFromBytes(constants.POOL_DATA_SIZE_BYTES)
+	}
+
+	if obj.MetadataSize == ignitemeta.EmptySize {
+		obj.AllocationSize = calcMetadataDevSize(obj)
 	}
 
 	if len(obj.MetadataPath) == 0 {
@@ -48,4 +55,12 @@ func SetDefaults_VMStatus(obj *VMStatus) {
 	if obj.State == "" {
 		obj.State = VMStateCreated
 	}
+}
+
+func calcMetadataDevSize(obj *PoolSpec) ignitemeta.Size {
+	// The minimum size is 2 MB and the maximum size is 16 GB
+	minSize := ignitemeta.NewSizeFromBytes(2 * constants.MB)
+	maxSize := ignitemeta.NewSizeFromBytes(16 * constants.GB)
+
+	return ignitemeta.NewSizeFromBytes(48 * obj.DataSize.Bytes() / obj.AllocationSize.Bytes()).Min(maxSize).Max(minSize)
 }
