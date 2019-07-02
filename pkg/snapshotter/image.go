@@ -54,10 +54,12 @@ func (i *Image) createResize(size ignitemeta.Size) (*Resize, error) {
 		return nil, err
 	}
 
-	return newResize(&Object{
-		device: device,
-		parent: &Image{},
-	})
+	// TODO: How to make this clean?
+	// TODO: This is now not saved in the S
+	return &Resize{
+		dev:   device,
+		image: i,
+	}, nil
 }
 
 func (s *Snapshotter) CreateVM(image *Image, kernel *v1alpha1.Kernel, kernelSrc source.Source, vm *v1alpha1.VM) (*VM, error) {

@@ -7,8 +7,8 @@ import (
 
 // This package represents kernel objects, which reside in /var/lib/firecracker/kernel/{id}/metadata.json
 type Kernel struct {
+	*Object
 	*v1alpha1.Kernel
-	device *dm.Device
 	resize *Resize
 }
 
@@ -28,6 +28,10 @@ func newKernel(o *Object) (*Kernel, error) {
 		device: o.device,
 		resize: resize,
 	}, nil
+}
+
+func (k *Kernel) resize() *Resize {
+	return k.parent.(*Resize)
 }
 
 func (s *Snapshotter) createKernel() (*Kernel, error) {

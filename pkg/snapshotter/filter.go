@@ -45,7 +45,7 @@ func (s *Snapshotter) getMultiple(f Filter, t v1alpha1.PoolDeviceType) ([]*Objec
 
 	f.SetType(t)
 	for _, object := range s.objects {
-		if object.device.Type == t {
+		if object.device().Type == t {
 			if match, err := f.Filter(object); err != nil { // Filter returns *Object if it matches, otherwise nil
 				return nil, err
 			} else if match != nil {

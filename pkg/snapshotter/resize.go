@@ -8,9 +8,11 @@ import (
 )
 
 type Resize struct {
-	device *dm.Device
-	image  *Image
+	dev   *dm.Device
+	image *Image
 }
+
+var _ Object = &Resize{}
 
 func newResize(o *Object) (*Resize, error) {
 	image, err := newImage(o.parent)
@@ -19,9 +21,18 @@ func newResize(o *Object) (*Resize, error) {
 	}
 
 	return &Resize{
-		device: o.device,
-		image:  image,
+		dev:   o.device,
+		image: image,
 	}, nil
+}
+
+// TODO: This should generate a new resize from the ground up
+func WholeNewResize() {
+
+}
+
+func (r *Resize) device() *dm.Device {
+	return r.dev
 }
 
 func (r *Resize) ChildOf(image *Image) bool {
