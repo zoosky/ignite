@@ -30,6 +30,19 @@ func (o *Object) GetMetaObject() (ignitemeta.Object, error) {
 	return o.object, nil
 }
 
+// This is for filtering functions to resolve parents of images
+func (o *Object) ChildOf(i *Image) bool {
+	if o.device == i.device {
+		return true
+	}
+
+	if o.parent != nil {
+		return o.parent.ChildOf(i)
+	}
+
+	return false
+}
+
 // Snapshotter abstracts the device mapper pool and provides convenience methods
 // It's also responsible for (de)serializing the pool
 type Snapshotter struct {
@@ -57,21 +70,16 @@ func NewSnapshotter() (*Snapshotter, error) {
 		return nil, err
 	}
 
-	// Create objects from each device
-	poolSize := s.pool.Size()
-	resolved := make([]int, 0, poolSize)
-	s.objects = make([]*Object, poolSize)
-	_ = s.pool.ForDevices(func(id ignitemeta.DMID, device *dm.Device) error {
-		for _, i := range resolved {
-			if i == id.Index() {
-				// Already resolved
-				return nil
-			}
-		}
+	// Allocate Objects for each device
+	s.objects = make([]*Object, s.pool.Size())
+	for i := 0; i < len(s.objects); i++ {
+		s.objects[i] = new(Object)
+	}
 
-		s.objects = append(s.objects, &Object{
-			device: device,
-		})
+	// Create Objects from each device
+	_ = s.pool.ForDevices(func(id ignitemeta.DMID, device *dm.Device) error {
+		s.objects[id.Index()].device = device
+		s.objects[id.Index()].parent = s.objects[device.Parent.Index()]
 
 		return nil
 	})

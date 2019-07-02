@@ -22,7 +22,7 @@ func (s *Snapshotter) genResizeLayer(image *image.Image, size v1alpha1.Size) (*d
 	return s.GetDevice(*image.ID()).CreateSnapshot(resize.NewResize(size))
 }
 
-func (s *Snapshotter) ImportKernel(image *Image, kernel *Kernel) error {
+func (s *Snapshotter) ImportKernel2(image *Image, kernel *Kernel) error {
 	volume := s.GetDevice(image.Status.LayerID)
 
 	s.genResizeLayer(image)

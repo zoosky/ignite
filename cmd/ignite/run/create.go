@@ -97,22 +97,6 @@ func (cf *CreateFlags) NewCreateOptions(ss *snapshotter.Snapshotter, imageMatch 
 		return nil, err
 	}
 
-	if len(co.KernelName) == 0 {
-		co.KernelName = constants.DEFAULT_KERNEL
-	}
-
-	// TODO: Filter that checks if image contains wanted kernel and if it has the correct size
-	if kernel, err := ss.GetKernel(filter.NewIDNameFilter(co.KernelName)); err != nil {
-		switch err.(type) {
-		case snapshotter.ErrNonexistent:
-
-		}
-	}
-
-	co.kernel = &v1alpha1.ImageSource{
-		Name: co.KernelName,
-	}
-
 	// Parse the given overlay size
 	if err := co.size.UnmarshalText([]byte(co.SizeString)); err != nil {
 		return nil, err
@@ -127,6 +111,23 @@ func (cf *CreateFlags) NewCreateOptions(ss *snapshotter.Snapshotter, imageMatch 
 	if co.fileMappings, err = parseFileMappings(co.CopyFiles); err != nil {
 		return nil, err
 	}
+
+	if len(co.KernelName) == 0 {
+		co.KernelName = constants.DEFAULT_KERNEL
+	}
+
+	// TODO: Filter that checks if image contains wanted kernel and if it has the correct size
+	if kernel, err := ss.GetKernel(filter.NewKernelFilter(co.KernelName, co.image, co.size)); err != nil {
+		switch err.(type) {
+		case snapshotter.ErrNonexistent:
+
+		}
+	}
+
+	co.kernel = &v1alpha1.ImageSource{
+		Name: co.KernelName,
+	}
+
 	return co, nil
 }
 

@@ -4,15 +4,14 @@ import (
 	"fmt"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/snapshotter"
-	"github.com/weaveworks/ignite/pkg/util"
 
 	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 )
 
 // Compile-time assert to verify interface compatibility
-var _ snapshotter.Filter = &IDNameFilter{}
+var _ snapshotter.Filter = &KernelFilter{}
 
-// The IDNameFilter is the basic filter matching objects by their ID/name
+// The KernelFilter filters kernels that belong to an image and have a specific size
 type KernelFilter struct {
 	*IDNameFilter
 	image *snapshotter.Image
@@ -28,7 +27,6 @@ func NewKernelFilter(p string, image *snapshotter.Image, size ignitemeta.Size) *
 }
 
 func (f *KernelFilter) Filter(object *snapshotter.Object) (*snapshotter.Object, error) {
-	// TODO: Test if kernel is child of given image
 	mo, err := object.GetMetaObject()
 	if err != nil {
 		return nil, err
@@ -44,7 +42,10 @@ func (f *KernelFilter) Filter(object *snapshotter.Object) (*snapshotter.Object, 
 		return nil, nil
 	}
 
-	kernel.
+	// Check if child of image
+	if !object.ChildOf(f.image) {
+		return nil, nil
+	}
 
 	return f.IDNameFilter.Filter(object)
 }

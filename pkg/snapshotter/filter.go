@@ -63,15 +63,7 @@ func (s *Snapshotter) GetImage(f Filter) (*Image, error) {
 		return nil, err
 	}
 
-	ro, err := result.GetMetaObject()
-	if err != nil {
-		return nil, err
-	}
-
-	return &Image{
-		ro.(*v1alpha1.Image),
-		result.device,
-	}, nil
+	return newImage(result)
 }
 
 func (s *Snapshotter) GetImages(f Filter) ([]*Image, error) {
@@ -82,15 +74,11 @@ func (s *Snapshotter) GetImages(f Filter) ([]*Image, error) {
 
 	images := make([]*Image, 0, len(results))
 	for _, result := range results {
-		ro, err := result.GetMetaObject()
-		if err != nil {
+		if image, err := newImage(result); err == nil {
+			images = append(images, image)
+		} else {
 			return nil, err
 		}
-
-		images = append(images, &Image{
-			ro.(*v1alpha1.Image),
-			result.device,
-		})
 	}
 
 	return images, nil
@@ -102,10 +90,7 @@ func (s *Snapshotter) GetKernel(f Filter) (*Kernel, error) {
 		return nil, err
 	}
 
-	return &Kernel{
-		result.object.(*v1alpha1.Kernel),
-		result.device,
-	}, nil
+	return newKernel(result)
 }
 
 func (s *Snapshotter) GetKernels(f Filter) ([]*Kernel, error) {
@@ -116,15 +101,11 @@ func (s *Snapshotter) GetKernels(f Filter) ([]*Kernel, error) {
 
 	kernels := make([]*Kernel, 0, len(results))
 	for _, result := range results {
-		ro, err := result.GetMetaObject()
-		if err != nil {
+		if kernel, err := newKernel(result); err == nil {
+			kernels = append(kernels, kernel)
+		} else {
 			return nil, err
 		}
-
-		kernels = append(kernels, &Kernel{
-			ro.(*v1alpha1.Kernel),
-			result.device,
-		})
 	}
 
 	return kernels, nil
@@ -136,10 +117,7 @@ func (s *Snapshotter) GetVM(f Filter) (*VM, error) {
 		return nil, err
 	}
 
-	return &VM{
-		result.object.(*v1alpha1.VM),
-		result.device,
-	}, nil
+	return newVM(result)
 }
 
 func (s *Snapshotter) GetVMs(f Filter) ([]*VM, error) {
@@ -151,16 +129,40 @@ func (s *Snapshotter) GetVMs(f Filter) ([]*VM, error) {
 	vms := make([]*VM, 0, len(results))
 
 	for _, result := range results {
-		ro, err := result.GetMetaObject()
-		if err != nil {
+		if vm, err := newVM(result); err == nil {
+			vms = append(vms, vm)
+		} else {
 			return nil, err
 		}
-
-		vms = append(vms, &VM{
-			ro.(*v1alpha1.VM),
-			result.device,
-		})
 	}
 
 	return vms, nil
+}
+
+func (s *Snapshotter) GetResize(f Filter) (*Resize, error) {
+	result, err := s.getSingle(f, v1alpha1.PoolDeviceTypeResize)
+	if err != nil {
+		return nil, err
+	}
+
+	return newResize(result)
+}
+
+func (s *Snapshotter) GetResizes(f Filter) ([]*Resize, error) {
+	results, err := s.getMultiple(f, v1alpha1.PoolDeviceTypeResize)
+	if err != nil {
+		return nil, err
+	}
+
+	resizes := make([]*Resize, 0, len(results))
+
+	for _, result := range results {
+		if resize, err := newResize(result); err == nil {
+			resizes = append(resizes, resize)
+		} else {
+			return nil, err
+		}
+	}
+
+	return resizes, nil
 }

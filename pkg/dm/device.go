@@ -6,10 +6,9 @@ import (
 	"os/exec"
 	"path"
 
-	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/layer"
 	"github.com/weaveworks/ignite/pkg/source"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -28,7 +27,7 @@ var _ blockDevice = &Device{}
 // Additional space to add to volumes to compensate for the ext4 partition
 var extraSize = ignitemeta.NewSizeFromBytes(constants.POOL_VOLUME_EXTRA_SIZE)
 
-func (p *Pool) CreateVolume(layer layer.Layer) (*Device, error) {
+func (p *Pool) CreateVolume(size ignitemeta.Size, metadataPath string) (*Device, error) {
 	// The pool needs to be active for this
 	if err := p.activate(); err != nil {
 		return nil, err
@@ -39,14 +38,11 @@ func (p *Pool) CreateVolume(layer layer.Layer) (*Device, error) {
 			return nil, err
 		}
 
-		// Assign the volume ID to the layer
-		*layer.ID() = id
-
 		return &Device{
 			PoolDevice: &v1alpha1.PoolDevice{
-				Size:         layer.Size().Add(extraSize),
+				Size:         size.Add(extraSize),
 				Parent:       nil,
-				MetadataPath: layer.MetadataPath(),
+				MetadataPath: metadataPath,
 			},
 			pool: p,
 			mkfs: true, // This is a new volume, create a new filesystem for it on activation
@@ -58,7 +54,7 @@ func (p *Pool) CreateVolume(layer layer.Layer) (*Device, error) {
 	}
 }
 
-func (d *Device) CreateSnapshot(layer layer.Layer) (*Device, error) {
+func (d *Device) CreateSnapshot(size ignitemeta.Size, metadataPath string) (*Device, error) {
 	// The device needs to be active for this
 	if err := d.activate(); err != nil {
 		return nil, err
@@ -78,18 +74,15 @@ func (d *Device) CreateSnapshot(layer layer.Layer) (*Device, error) {
 			return nil, err
 		}
 
-		// Assign the snapshot ID to the layer
-		*layer.ID() = id
-
 		// TODO: Prevent snapshots smaller than their parents?
 		return &Device{
 			PoolDevice: &v1alpha1.PoolDevice{
-				Size:         layer.Size(),
+				Size:         size,
 				Parent:       d.pool.getID(d),
-				MetadataPath: layer.MetadataPath(),
+				MetadataPath: metadataPath,
 			},
 			pool:   d.pool,
-			resize: layer.Size() != d.Size, // Set the resize flag if the size differs from the parent
+			resize: size != d.Size, // Set the resize flag if the size differs from the parent
 		}, nil
 	}); err != nil {
 		return nil, err
