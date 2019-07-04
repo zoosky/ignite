@@ -16,25 +16,31 @@ import (
 )
 
 // Storage is an interface for persisting and retrieving API objects to/from a backend
+// One Storage instance handles all different Kinds of Objects
 type Storage interface {
-	// Get populates the pointer to the Object given, based on the file content
+	// Get populates the Object using the given pointer, based on the file content
 	Get(obj meta.Object) error
-	// GetByID returns a new Object for the resource at the specified kind/uid path, based on the file content
-	GetByID(kind string, uid meta.UID) (meta.Object, error)
 	// Set saves the Object to disk. If the object does not exist, the
 	// ObjectMeta.Created field is set automatically
 	Set(obj meta.Object) error
+	// GetByID returns a new Object for the resource at the specified kind/uid path, based on the file content
+	GetByID(kind meta.Kind, uid meta.UID) (meta.Object, error)
 	// Delete removes an object from the storage
-	Delete(kind string, uid meta.UID) error
+	Delete(kind meta.Kind, uid meta.UID) error
 	// List lists objects for the specific kind
-	List(kind string) ([]meta.Object, error)
+	List(kind meta.Kind) ([]meta.Object, error)
 	// ListMeta lists all objects' APIType representation. In other words,
 	// only metadata about each object is unmarshalled (uid/name/kind/apiVersion).
 	// This allows for faster runs (no need to unmarshal "the world"), and less
 	// resource usage, when only metadata is unmarshalled into memory
-	ListMeta(kind string) (meta.APITypeList, error)
-	// GetCache gets a new Cache implementation for the specified kind
-	GetCache(kind string) (Cache, error)
+	ListMeta(kind meta.Kind) (meta.APITypeList, error)
+	// Count returns the amount of available Objects of a specific kind
+	// This is used by Caches to check if all objects are cached to perform a List
+	Count(kind meta.Kind) (uint64, error)
+	// Find and FindAll are used to match single or multiple Objects
+	// of a given type based on the given filter
+	Find(kind meta.Kind, filter Filter) (meta.Object, error)
+	FindAll(kind meta.Kind, filter Filter) ([]meta.Object, error)
 }
 
 // DefaultStorage is the default storage impl
@@ -150,13 +156,18 @@ func (s *GenericStorage) ListMeta(kind string) (meta.APITypeList, error) {
 	return result, nil
 }
 
-// GetCache gets a new Cache implementation for the specified kind
-func (s *GenericStorage) GetCache(kind string) (Cache, error) {
-	list, err := s.ListMeta(kind)
-	if err != nil {
-		return nil, err
-	}
-	return NewCache(list), nil
+// Count counts the objects for the specific kind
+func (s *GenericStorage) Count(kind string) (uint64, error) {
+	entries, err := s.raw.List(s.keyForKind(kind))
+	return uint64(len(entries)), err
+}
+
+func (c *GenericStorage) Find(kind meta.Kind, filter Filter) (meta.Object, error) {
+	// TODO: Find implementation
+}
+
+func (c *GenericStorage) FindAll(kind meta.Kind, filter Filter) ([]meta.Object, error) {
+	// TODO: FindAll implementation
 }
 
 func (s *GenericStorage) walkKind(kind string, fn func(content []byte) error) error {
