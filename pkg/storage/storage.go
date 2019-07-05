@@ -3,7 +3,6 @@ package storage
 import (
 	"fmt"
 	"path"
-	"strings"
 
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
@@ -57,6 +56,8 @@ type GenericStorage struct {
 	serializer serializer.Serializer
 }
 
+var _ Storage = &GenericStorage{}
+
 // Get populates the pointer to the Object given, based on the file content
 func (s *GenericStorage) Get(obj meta.Object) error {
 	storageKey, err := s.keyForObj(obj)
@@ -71,7 +72,7 @@ func (s *GenericStorage) Get(obj meta.Object) error {
 }
 
 // GetByID returns a new Object for the resource at the specified kind/uid path, based on the file content
-func (s *GenericStorage) GetByID(kind string, uid meta.UID) (meta.Object, error) {
+func (s *GenericStorage) GetByID(kind meta.Kind, uid meta.UID) (meta.Object, error) {
 	storageKey := s.keyForID(kind, uid.String())
 	content, err := s.raw.Read(storageKey)
 	if err != nil {
@@ -109,13 +110,13 @@ func (s *GenericStorage) Set(obj meta.Object) error {
 }
 
 // Delete removes an object from the storage
-func (s *GenericStorage) Delete(kind string, uid meta.UID) error {
+func (s *GenericStorage) Delete(kind meta.Kind, uid meta.UID) error {
 	storageKey := s.keyForID(kind, uid.String())
 	return s.raw.Delete(storageKey)
 }
 
 // List lists objects for the specific kind
-func (s *GenericStorage) List(kind string) ([]meta.Object, error) {
+func (s *GenericStorage) List(kind meta.Kind) ([]meta.Object, error) {
 	result := []meta.Object{}
 	err := s.walkKind(kind, func(content []byte) error {
 		runtimeobj, err := s.serializer.Decode(content)
@@ -139,7 +140,7 @@ func (s *GenericStorage) List(kind string) ([]meta.Object, error) {
 // only metadata about each object is unmarshalled (uid/name/kind/apiVersion).
 // This allows for faster runs (no need to unmarshal "the world"), and less
 // resource usage, when only metadata is unmarshalled into memory
-func (s *GenericStorage) ListMeta(kind string) (meta.APITypeList, error) {
+func (s *GenericStorage) ListMeta(kind meta.Kind) (meta.APITypeList, error) {
 	result := meta.APITypeList{}
 	err := s.walkKind(kind, func(content []byte) error {
 		obj := &meta.APIType{}
@@ -157,20 +158,32 @@ func (s *GenericStorage) ListMeta(kind string) (meta.APITypeList, error) {
 }
 
 // Count counts the objects for the specific kind
-func (s *GenericStorage) Count(kind string) (uint64, error) {
+func (s *GenericStorage) Count(kind meta.Kind) (uint64, error) {
 	entries, err := s.raw.List(s.keyForKind(kind))
 	return uint64(len(entries)), err
 }
 
 func (c *GenericStorage) Find(kind meta.Kind, filter Filter) (meta.Object, error) {
 	// TODO: Find implementation
+	var objects []meta.Object
+	var err error
+
+	if filter.Meta() {
+		objects, err = c.ListMeta(kind)
+	} else {
+
+	}
+
+	if err != nil {
+		return nil, err
+	}
 }
 
 func (c *GenericStorage) FindAll(kind meta.Kind, filter Filter) ([]meta.Object, error) {
 	// TODO: FindAll implementation
 }
 
-func (s *GenericStorage) walkKind(kind string, fn func(content []byte) error) error {
+func (s *GenericStorage) walkKind(kind meta.Kind, fn func(content []byte) error) error {
 	kindKey := s.keyForKind(kind)
 	entries, err := s.raw.List(kindKey)
 	if err != nil {
@@ -198,15 +211,15 @@ func (s *GenericStorage) keyForObj(obj meta.Object) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return s.keyForID(gvk.Kind, obj.GetUID().String()), nil
+	return s.keyForID(meta.Kind(gvk.Kind), obj.GetUID().String()), nil
 }
 
-func (s *GenericStorage) keyForID(kind, uid string) string {
-	return strings.ToLower("/" + path.Join(kind, uid))
+func (s *GenericStorage) keyForID(kind meta.Kind, uid string) string {
+	return "/" + path.Join(kind.String(), uid)
 }
 
-func (s *GenericStorage) keyForKind(kind string) string {
-	return strings.ToLower("/" + kind)
+func (s *GenericStorage) keyForKind(kind meta.Kind) string {
+	return "/" + kind.String()
 }
 
 func (s *GenericStorage) gvkFromObj(obj runtime.Object) (*schema.GroupVersionKind, error) {
