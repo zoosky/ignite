@@ -2,6 +2,7 @@ package filterer
 
 import (
 	"fmt"
+
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
 )
@@ -19,7 +20,7 @@ func NewFilterer(storage storage.Storage) *Filterer {
 type filterFunc func(meta.Object) (meta.Object, error)
 
 // Find a single meta.Object of the given kind using the given filter
-func (f *Filterer) Find(kind meta.Kind, filter baseFilter) (meta.Object, error) {
+func (f *Filterer) Find(kind meta.Kind, filter BaseFilter) (meta.Object, error) {
 	var result meta.Object
 
 	// Fetch the sources, correct filtering method and if we're dealing with meta.APIType objects
@@ -54,7 +55,7 @@ func (f *Filterer) Find(kind meta.Kind, filter baseFilter) (meta.Object, error) 
 }
 
 // Find all meta.Objects of the given kind using the given filter
-func (f *Filterer) FindAll(kind meta.Kind, filter baseFilter) ([]meta.Object, error) {
+func (f *Filterer) FindAll(kind meta.Kind, filter BaseFilter) ([]meta.Object, error) {
 	var results []meta.Object
 
 	// Fetch the sources, correct filtering method and if we're dealing with meta.APIType objects
@@ -87,7 +88,7 @@ func (f *Filterer) FindAll(kind meta.Kind, filter baseFilter) ([]meta.Object, er
 	return results, nil
 }
 
-func (f *Filterer) parseFilter(kind meta.Kind, filter baseFilter) (sources []meta.Object, filterFunc filterFunc, metaObjects bool, err error) {
+func (f *Filterer) parseFilter(kind meta.Kind, filter BaseFilter) (sources []meta.Object, filterFunc filterFunc, metaObjects bool, err error) {
 	if metaFilter, ok := filter.(MetaFilter); ok {
 		filterFunc = metaFilter.FilterMeta
 		sources, err = f.storage.ListMeta(kind)

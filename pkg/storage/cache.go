@@ -15,8 +15,9 @@ type Cache interface {
 
 func NewCache(backingStorage Storage) Cache {
 	return &cache{
-		storage: backingStorage,
-		cache:   newObjectCache(),
+		storage:   backingStorage,
+		cache:     newObjectCache(),
+		metaCache: newObjectCache(),
 	}
 }
 
@@ -28,6 +29,9 @@ type cache struct {
 	// cache caches the Objects by Kind and UID
 	// This guarantees uniqueness when looking up a specific Object
 	cache *objectCache
+
+	// metaCache caches the Objects as meta.APITypes by Kind and UID
+	metaCache *objectCache
 }
 
 var _ Cache = &cache{}
@@ -105,10 +109,30 @@ func (c *cache) List(kind meta.Kind) ([]meta.Object, error) {
 	return objs, err
 }
 
+// TODO: The metaCache falls out of sync on any updates, the cache should support saving
+// headers and objects coupled together loading the object to replace the header when needed
 func (c *cache) ListMeta(kind meta.Kind) ([]meta.Object, error) {
-	// TODO: The cache doesn't track APITypes, are they obsolete?
-	// TODO: Filters most likely require the full Object
-	return c.storage.ListMeta(kind)
+	// TODO: Support extracting meta.APIType Objects from fully loaded objects to back the meta cache
+	var objs []meta.Object
+	var storageCount uint64
+	var err error
+
+	if storageCount, err = c.storage.Count(kind); err != nil {
+		return nil, err
+	}
+
+	if c.metaCache.count(kind) != storageCount {
+		// If the cache doesn't track all of the Objects, request them from the storage
+		if objs, err = c.storage.ListMeta(kind); err != nil {
+			// If no errors occurred, store the Objects in the cache
+			c.metaCache.storeAll(objs)
+		}
+	} else {
+		// If the cache tracks everything, return the cache's contents
+		objs = c.metaCache.list(kind)
+	}
+
+	return objs, err
 }
 
 func (c *cache) Count(kind meta.Kind) (uint64, error) {

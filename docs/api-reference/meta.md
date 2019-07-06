@@ -72,7 +72,7 @@ var EmptySize = NewSizeFromBytes(0)
 
 
 
-## <a name="APIType">type</a> [APIType](/src/target/meta.go?s=340:422#L18)
+## <a name="APIType">type</a> [APIType](/src/target/meta.go?s=411:493#L19)
 ``` go
 type APIType struct {
     TypeMeta   `json:",inline"`
@@ -83,6 +83,7 @@ type APIType struct {
 APIType is a struct implementing Object, used for
 unmarshalling unknown objects into this intermediate type
 where .Name, .UID, .Kind and .APIVersion become easily available
++k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 
 
@@ -93,7 +94,7 @@ where .Name, .UID, .Kind and .APIVersion become easily available
 
 
 
-## <a name="APITypeList">type</a> [APITypeList](/src/target/meta.go?s=482:509#L24)
+## <a name="APITypeList">type</a> [APITypeList](/src/target/meta.go?s=580:607#L27)
 ``` go
 type APITypeList []*APIType
 ```
@@ -179,7 +180,7 @@ func (i IPAddresses) String() string
 
 
 
-## <a name="Kind">type</a> [Kind](/src/target/meta.go?s=701:717#L35)
+## <a name="Kind">type</a> [Kind](/src/target/meta.go?s=799:815#L38)
 ``` go
 type Kind string
 ```
@@ -200,7 +201,7 @@ const (
 
 
 
-### <a name="Kind.String">func</a> (Kind) [String](/src/target/meta.go?s=897:926#L46)
+### <a name="Kind.String">func</a> (Kind) [String](/src/target/meta.go?s=995:1024#L49)
 ``` go
 func (k Kind) String() string
 ```
@@ -209,7 +210,7 @@ Returns a lowercase string representation of the Kind
 
 
 
-### <a name="Kind.Upper">func</a> (Kind) [Upper](/src/target/meta.go?s=1094:1122#L58)
+### <a name="Kind.Upper">func</a> (Kind) [Upper](/src/target/meta.go?s=1192:1220#L61)
 ``` go
 func (k Kind) Upper() string
 ```
@@ -218,7 +219,7 @@ Returns a uppercase string representation of the Kind
 
 
 
-## <a name="Object">type</a> [Object](/src/target/meta.go?s=2172:2336#L103)
+## <a name="Object">type</a> [Object](/src/target/meta.go?s=2270:2434#L106)
 ``` go
 type Object interface {
     runtime.Object
@@ -247,7 +248,7 @@ extra GetName() and GetUID() methods from ObjectMeta
 
 
 
-## <a name="ObjectMeta">type</a> [ObjectMeta](/src/target/meta.go?s=1306:1444#L65)
+## <a name="ObjectMeta">type</a> [ObjectMeta](/src/target/meta.go?s=1404:1542#L68)
 ``` go
 type ObjectMeta struct {
     Name    string `json:"name"`
@@ -269,7 +270,7 @@ implement the Object interface
 
 
 
-### <a name="ObjectMeta.GetCreated">func</a> (\*ObjectMeta) [GetCreated](/src/target/meta.go?s=1882:1921#L92)
+### <a name="ObjectMeta.GetCreated">func</a> (\*ObjectMeta) [GetCreated](/src/target/meta.go?s=1980:2019#L95)
 ``` go
 func (o *ObjectMeta) GetCreated() *Time
 ```
@@ -278,7 +279,7 @@ GetCreated returns when the Object was created
 
 
 
-### <a name="ObjectMeta.GetName">func</a> (\*ObjectMeta) [GetName](/src/target/meta.go?s=1488:1525#L72)
+### <a name="ObjectMeta.GetName">func</a> (\*ObjectMeta) [GetName](/src/target/meta.go?s=1586:1623#L75)
 ``` go
 func (o *ObjectMeta) GetName() string
 ```
@@ -287,7 +288,7 @@ GetName returns the name of the Object
 
 
 
-### <a name="ObjectMeta.GetUID">func</a> (\*ObjectMeta) [GetUID](/src/target/meta.go?s=1687:1720#L82)
+### <a name="ObjectMeta.GetUID">func</a> (\*ObjectMeta) [GetUID](/src/target/meta.go?s=1785:1818#L85)
 ``` go
 func (o *ObjectMeta) GetUID() UID
 ```
@@ -296,7 +297,7 @@ GetUID returns the UID of the Object
 
 
 
-### <a name="ObjectMeta.SetCreated">func</a> (\*ObjectMeta) [SetCreated](/src/target/meta.go?s=1995:2035#L97)
+### <a name="ObjectMeta.SetCreated">func</a> (\*ObjectMeta) [SetCreated](/src/target/meta.go?s=2093:2133#L100)
 ``` go
 func (o *ObjectMeta) SetCreated(t *Time)
 ```
@@ -305,7 +306,7 @@ SetCreated returns when the Object was created
 
 
 
-### <a name="ObjectMeta.SetName">func</a> (\*ObjectMeta) [SetName](/src/target/meta.go?s=1585:1626#L77)
+### <a name="ObjectMeta.SetName">func</a> (\*ObjectMeta) [SetName](/src/target/meta.go?s=1683:1724#L80)
 ``` go
 func (o *ObjectMeta) SetName(name string)
 ```
@@ -314,7 +315,7 @@ SetName sets the name of the Object
 
 
 
-### <a name="ObjectMeta.SetUID">func</a> (\*ObjectMeta) [SetUID](/src/target/meta.go?s=1777:1813#L87)
+### <a name="ObjectMeta.SetUID">func</a> (\*ObjectMeta) [SetUID](/src/target/meta.go?s=1875:1911#L90)
 ``` go
 func (o *ObjectMeta) SetUID(uid UID)
 ```
@@ -494,7 +495,7 @@ The default string for Time is a human readable difference between the Time and 
 
 
 
-## <a name="TypeMeta">type</a> [TypeMeta](/src/target/meta.go?s=598:639#L27)
+## <a name="TypeMeta">type</a> [TypeMeta](/src/target/meta.go?s=696:737#L30)
 ``` go
 type TypeMeta struct {
     metav1.TypeMeta
@@ -512,7 +513,7 @@ TypeMeta is an alias for the k8s/apimachinery TypeMeta with some additional meth
 
 
 
-### <a name="TypeMeta.GetKind">func</a> (\*TypeMeta) [GetKind](/src/target/meta.go?s=641:674#L31)
+### <a name="TypeMeta.GetKind">func</a> (\*TypeMeta) [GetKind](/src/target/meta.go?s=739:772#L34)
 ``` go
 func (t *TypeMeta) GetKind() Kind
 ```
