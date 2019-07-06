@@ -105,7 +105,7 @@ func (c *cache) List(kind meta.Kind) ([]meta.Object, error) {
 	return objs, err
 }
 
-func (c *cache) ListMeta(kind meta.Kind) (meta.APITypeList, error) {
+func (c *cache) ListMeta(kind meta.Kind) ([]meta.Object, error) {
 	// TODO: The cache doesn't track APITypes, are they obsolete?
 	// TODO: Filters most likely require the full Object
 	return c.storage.ListMeta(kind)
@@ -116,17 +116,6 @@ func (c *cache) Count(kind meta.Kind) (uint64, error) {
 	return c.storage.Count(kind)
 }
 
-func (c *cache) Find(kind meta.Kind, filter Filter) (meta.Object, error) {
-	// TODO: Find should use the cached types for filtering, but should
-	// receive them via c.List(), as everything may not be loaded yet
-}
-
-func (c *cache) FindAll(kind meta.Kind, filter Filter) ([]meta.Object, error) {
-	// TODO: FindAll should use the cached types for filtering, but should
-	// receive them via c.List(), as everything may not be loaded yet
-}
-
-//
 func (c *cache) Flush() error {
 	// Load the entire cache
 	for _, obj := range c.cache.loadAll() {

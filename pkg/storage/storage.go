@@ -32,14 +32,10 @@ type Storage interface {
 	// only metadata about each object is unmarshalled (uid/name/kind/apiVersion).
 	// This allows for faster runs (no need to unmarshal "the world"), and less
 	// resource usage, when only metadata is unmarshalled into memory
-	ListMeta(kind meta.Kind) (meta.APITypeList, error)
+	ListMeta(kind meta.Kind) ([]meta.Object, error)
 	// Count returns the amount of available Objects of a specific kind
 	// This is used by Caches to check if all objects are cached to perform a List
 	Count(kind meta.Kind) (uint64, error)
-	// Find and FindAll are used to match single or multiple Objects
-	// of a given type based on the given filter
-	Find(kind meta.Kind, filter Filter) (meta.Object, error)
-	FindAll(kind meta.Kind, filter Filter) ([]meta.Object, error)
 }
 
 // DefaultStorage is the default storage impl
@@ -117,7 +113,7 @@ func (s *GenericStorage) Delete(kind meta.Kind, uid meta.UID) error {
 
 // List lists objects for the specific kind
 func (s *GenericStorage) List(kind meta.Kind) ([]meta.Object, error) {
-	result := []meta.Object{}
+	result := []meta.Object{} // TODO: Fix these initializations
 	err := s.walkKind(kind, func(content []byte) error {
 		runtimeobj, err := s.serializer.Decode(content)
 		if err != nil {
@@ -140,8 +136,8 @@ func (s *GenericStorage) List(kind meta.Kind) ([]meta.Object, error) {
 // only metadata about each object is unmarshalled (uid/name/kind/apiVersion).
 // This allows for faster runs (no need to unmarshal "the world"), and less
 // resource usage, when only metadata is unmarshalled into memory
-func (s *GenericStorage) ListMeta(kind meta.Kind) (meta.APITypeList, error) {
-	result := meta.APITypeList{}
+func (s *GenericStorage) ListMeta(kind meta.Kind) ([]meta.Object, error) {
+	result := []meta.Object{}
 	err := s.walkKind(kind, func(content []byte) error {
 		obj := &meta.APIType{}
 		// The yaml package supports both YAML and JSON
@@ -161,26 +157,6 @@ func (s *GenericStorage) ListMeta(kind meta.Kind) (meta.APITypeList, error) {
 func (s *GenericStorage) Count(kind meta.Kind) (uint64, error) {
 	entries, err := s.raw.List(s.keyForKind(kind))
 	return uint64(len(entries)), err
-}
-
-func (c *GenericStorage) Find(kind meta.Kind, filter Filter) (meta.Object, error) {
-	// TODO: Find implementation
-	var objects []meta.Object
-	var err error
-
-	if filter.Meta() {
-		objects, err = c.ListMeta(kind)
-	} else {
-
-	}
-
-	if err != nil {
-		return nil, err
-	}
-}
-
-func (c *GenericStorage) FindAll(kind meta.Kind, filter Filter) ([]meta.Object, error) {
-	// TODO: FindAll implementation
 }
 
 func (s *GenericStorage) walkKind(kind meta.Kind, fn func(content []byte) error) error {

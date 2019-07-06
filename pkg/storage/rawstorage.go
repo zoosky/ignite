@@ -16,6 +16,7 @@ type RawStorage interface {
 	Write(key string, content []byte) error
 	Delete(key string) error
 	List(directory string) ([]string, error)
+	Count(directory string) (uint64, error)
 }
 
 func NewDefaultRawStorage(dir string) RawStorage {
@@ -81,4 +82,9 @@ func (r *DefaultRawStorage) List(parentKey string) ([]string, error) {
 		result = append(result, entryPath)
 	}
 	return result, nil
+}
+
+func (r *DefaultRawStorage) Count(directory string) (uint64, error) {
+	// TODO: This
+	return 0, nil
 }
