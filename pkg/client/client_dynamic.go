@@ -15,6 +15,9 @@ type DynamicClient interface {
 	// Find returns an Object based on the given filter, filters can
 	// match e.g. the Object's Name, UID or a specific property
 	Find(filter filterer.BaseFilter) (meta.Object, error)
+	// FindAll returns multiple Objects based on the given filter, filters can
+	// match e.g. the Object's Name, UID or a specific property
+	FindAll(filter filterer.BaseFilter) ([]meta.Object, error)
 	// Delete deletes an Object from the storage
 	Delete(uid meta.UID) error
 	// List returns a list of all Objects available
@@ -67,6 +70,11 @@ func (c *dynamicClient) Set(resource meta.Object) error {
 // Find returns an Object based on a given Filter
 func (c *dynamicClient) Find(filter filterer.BaseFilter) (meta.Object, error) {
 	return c.filterer.Find(c.kind, filter)
+}
+
+// FindAll returns multiple Objects based on a given Filter
+func (c *dynamicClient) FindAll(filter filterer.BaseFilter) ([]meta.Object, error) {
+	return c.filterer.FindAll(c.kind, filter)
 }
 
 // Delete deletes the Object from the storage

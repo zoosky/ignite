@@ -62,6 +62,10 @@ func (k Kind) Upper() string {
 	return string(k)
 }
 
+func (k Kind) Lower() string {
+	return string(bytes.ToLower([]byte(k)))
+}
+
 // ObjectMeta have to be embedded into any serializable object.
 // It provides the .GetName() and .GetUID() methods that help
 // implement the Object interface

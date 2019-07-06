@@ -22,6 +22,9 @@ type VMClient interface {
 	// Find returns the VM matching the given filter, filters can
 	// match e.g. the Object's Name, UID or a specific property
 	Find(filter filterer.BaseFilter) (*api.VM, error)
+	// FindAll returns multiple VMs matching the given filter, filters can
+	// match e.g. the Object's Name, UID or a specific property
+	FindAll(filter filterer.BaseFilter) ([]*api.VM, error)
 	// Delete deletes the VM with the given UID from the storage
 	Delete(uid meta.UID) error
 	// List returns a list of all VMs available
@@ -57,16 +60,39 @@ func newVMClient(s storage.Storage) VMClient {
 	}
 }
 
-// Find returns a single VM based on a given Filter
+// Find returns a single VM based on the given Filter
 func (c *vmClient) Find(filter filterer.BaseFilter) (*api.VM, error) {
 	object, err := c.filterer.Find(api.VMKind, filter)
-	return object.(*api.VM), err
+	if err != nil {
+		return nil, err
+	}
+
+	return object.(*api.VM), nil
+}
+
+// FindAll returns multiple VMs based on the given Filter
+func (c *vmClient) FindAll(filter filterer.BaseFilter) ([]*api.VM, error) {
+	matches, err := c.filterer.FindAll(api.VMKind, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	results := make([]*api.VM, 0, len(matches))
+	for _, item := range matches {
+		results = append(results, item.(*api.VM))
+	}
+
+	return results, nil
 }
 
 // Get returns the VM matching given UID from the storage
 func (c *vmClient) Get(uid meta.UID) (*api.VM, error) {
 	object, err := c.storage.GetByID(meta.KindVM, uid)
-	return object.(*api.VM), err
+	if err != nil {
+		return nil, err
+	}
+
+	return object.(*api.VM), nil
 }
 
 // Set saves the given VM into the persistent storage
@@ -86,10 +112,10 @@ func (c *vmClient) List() ([]*api.VM, error) {
 		return nil, err
 	}
 
-	result := make([]*api.VM, 0, len(list))
+	results := make([]*api.VM, 0, len(list))
 	for _, item := range list {
-		result = append(result, item.(*api.VM))
+		results = append(results, item.(*api.VM))
 	}
 
-	return result, nil
+	return results, nil
 }

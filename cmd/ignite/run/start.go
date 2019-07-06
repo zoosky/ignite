@@ -10,7 +10,6 @@ import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 
 	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/network/cni"
 	"github.com/weaveworks/ignite/pkg/runtime/docker"
 	"github.com/weaveworks/ignite/pkg/util"
@@ -39,8 +38,8 @@ type startOptions struct {
 	*attachOptions
 }
 
-func (sf *StartFlags) NewStartOptions(l *loader.ResLoader, vmMatch string) (*startOptions, error) {
-	ao, err := NewAttachOptions(l, vmMatch)
+func (sf *StartFlags) NewStartOptions(vmMatch string) (*startOptions, error) {
+	ao, err := NewAttachOptions(vmMatch)
 	if err != nil {
 		return nil, err
 	}

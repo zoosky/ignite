@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
@@ -18,19 +18,10 @@ type ImportKernelFlags struct {
 
 type importKernelOptions struct {
 	*ImportKernelFlags
-	allKernels []metadata.Metadata
 }
 
-func (i *ImportKernelFlags) NewImportKernelOptions(l *loader.ResLoader) (*importKernelOptions, error) {
-	io := &importKernelOptions{ImportKernelFlags: i}
-
-	if allKernels, err := l.Kernels(); err == nil {
-		io.allKernels = *allKernels
-	} else {
-		return nil, err
-	}
-
-	return io, nil
+func (i *ImportKernelFlags) NewImportKernelOptions() (*importKernelOptions, error) {
+	return &importKernelOptions{ImportKernelFlags: i}, nil
 }
 
 func ImportKernel(ao *importKernelOptions) error {
@@ -51,7 +42,7 @@ func ImportKernel(ao *importKernelOptions) error {
 	}
 
 	// Verify the name
-	name, err := metadata.NewNameWithLatest(ao.Name, &ao.allKernels)
+	name, err := metadata.NewNameWithLatest(ao.Name, meta.KindKernel)
 	if err != nil {
 		return err
 	}

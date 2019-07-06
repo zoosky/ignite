@@ -24,6 +24,9 @@ type ResourceClient interface {
 	// Find returns the Resource matching the given filter, filters can
 	// match e.g. the Object's Name, UID or a specific property
 	Find(filter filterer.BaseFilter) (*api.Resource, error)
+	// FindAll returns multiple Resources matching the given filter, filters can
+	// match e.g. the Object's Name, UID or a specific property
+	FindAll(filter filterer.BaseFilter) ([]*api.Resource, error)
 	// Delete deletes the Resource with the given UID from the storage
 	Delete(uid meta.UID) error
 	// List returns a list of all Resources available
@@ -59,16 +62,39 @@ func newResourceClient(s storage.Storage) ResourceClient {
 	}
 }
 
-// Find returns a single Resource based on a given Filter
+// Find returns a single Resource based on the given Filter
 func (c *resourceClient) Find(filter filterer.BaseFilter) (*api.Resource, error) {
 	object, err := c.filterer.Find(api.ResourceKind, filter)
-	return object.(*api.Resource), err
+	if err != nil {
+		return nil, err
+	}
+
+	return object.(*api.Resource), nil
+}
+
+// FindAll returns multiple Resources based on the given Filter
+func (c *resourceClient) FindAll(filter filterer.BaseFilter) ([]*api.Resource, error) {
+	matches, err := c.filterer.FindAll(api.ResourceKind, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	results := make([]*api.Resource, 0, len(matches))
+	for _, item := range matches {
+		results = append(results, item.(*api.Resource))
+	}
+
+	return results, nil
 }
 
 // Get returns the Resource matching given UID from the storage
 func (c *resourceClient) Get(uid meta.UID) (*api.Resource, error) {
 	object, err := c.storage.GetByID(meta.KindResource, uid)
-	return object.(*api.Resource), err
+	if err != nil {
+		return nil, err
+	}
+
+	return object.(*api.Resource), nil
 }
 
 // Set saves the given Resource into the persistent storage
@@ -88,10 +114,10 @@ func (c *resourceClient) List() ([]*api.Resource, error) {
 		return nil, err
 	}
 
-	result := make([]*api.Resource, 0, len(list))
+	results := make([]*api.Resource, 0, len(list))
 	for _, item := range list {
-		result = append(result, item.(*api.Resource))
+		results = append(results, item.(*api.Resource))
 	}
 
-	return result, nil
+	return results, nil
 }

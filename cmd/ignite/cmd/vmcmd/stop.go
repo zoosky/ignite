@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
-
 	"github.com/lithammer/dedent"
 	"github.com/weaveworks/ignite/pkg/constants"
 
@@ -34,7 +32,7 @@ func NewCmdStop(out io.Writer) *cobra.Command {
 		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				so, err := sf.NewStopOptions(loader.NewResLoader(), args)
+				so, err := sf.NewStopOptions(args)
 				if err != nil {
 					return err
 				}

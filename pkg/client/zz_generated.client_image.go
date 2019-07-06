@@ -22,6 +22,9 @@ type ImageClient interface {
 	// Find returns the Image matching the given filter, filters can
 	// match e.g. the Object's Name, UID or a specific property
 	Find(filter filterer.BaseFilter) (*api.Image, error)
+	// FindAll returns multiple Images matching the given filter, filters can
+	// match e.g. the Object's Name, UID or a specific property
+	FindAll(filter filterer.BaseFilter) ([]*api.Image, error)
 	// Delete deletes the Image with the given UID from the storage
 	Delete(uid meta.UID) error
 	// List returns a list of all Images available
@@ -57,16 +60,39 @@ func newImageClient(s storage.Storage) ImageClient {
 	}
 }
 
-// Find returns a single Image based on a given Filter
+// Find returns a single Image based on the given Filter
 func (c *imageClient) Find(filter filterer.BaseFilter) (*api.Image, error) {
 	object, err := c.filterer.Find(api.ImageKind, filter)
-	return object.(*api.Image), err
+	if err != nil {
+		return nil, err
+	}
+
+	return object.(*api.Image), nil
+}
+
+// FindAll returns multiple Images based on the given Filter
+func (c *imageClient) FindAll(filter filterer.BaseFilter) ([]*api.Image, error) {
+	matches, err := c.filterer.FindAll(api.ImageKind, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	results := make([]*api.Image, 0, len(matches))
+	for _, item := range matches {
+		results = append(results, item.(*api.Image))
+	}
+
+	return results, nil
 }
 
 // Get returns the Image matching given UID from the storage
 func (c *imageClient) Get(uid meta.UID) (*api.Image, error) {
 	object, err := c.storage.GetByID(meta.KindImage, uid)
-	return object.(*api.Image), err
+	if err != nil {
+		return nil, err
+	}
+
+	return object.(*api.Image), nil
 }
 
 // Set saves the given Image into the persistent storage
@@ -86,10 +112,10 @@ func (c *imageClient) List() ([]*api.Image, error) {
 		return nil, err
 	}
 
-	result := make([]*api.Image, 0, len(list))
+	results := make([]*api.Image, 0, len(list))
 	for _, item := range list {
-		result = append(result, item.(*api.Image))
+		results = append(results, item.(*api.Image))
 	}
 
-	return result, nil
+	return results, nil
 }

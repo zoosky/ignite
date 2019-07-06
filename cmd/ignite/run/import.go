@@ -5,32 +5,26 @@ import (
 	"os"
 	"path"
 
+	"github.com/weaveworks/ignite/pkg/client"
+	"github.com/weaveworks/ignite/pkg/filter"
+	"github.com/weaveworks/ignite/pkg/storage/filterer"
+
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/source"
 )
 
 type importOptions struct {
-	source    string
-	resLoader *loader.ResLoader
-	newImage  *imgmd.Image
-	allImages []metadata.Metadata
+	source   string
+	newImage *imgmd.Image
 }
 
-func NewImportOptions(l *loader.ResLoader, source string) (*importOptions, error) {
-	io := &importOptions{resLoader: l, source: source}
-
-	if allImages, err := l.Images(); err == nil {
-		io.allImages = *allImages
-	} else {
-		return nil, err
-	}
-
-	return io, nil
+func NewImportOptions(source string) (*importOptions, error) {
+	return &importOptions{source: source}, nil
 }
 
 func Import(bo *importOptions) error {
@@ -48,7 +42,7 @@ func Import(bo *importOptions) error {
 	}
 
 	// Verify the name
-	name, err := metadata.NewNameWithLatest(bo.source, &bo.allImages)
+	name, err := metadata.NewNameWithLatest(bo.source, meta.KindImage)
 	if err != nil {
 		return err
 	}
@@ -77,11 +71,14 @@ func Import(bo *importOptions) error {
 	log.Printf("Created imported a %s filesystem", image.Spec.Source.Size.HR())
 
 	// If the kernel already exists, don't try to import something with the same name
-	if allKernels, err := bo.resLoader.Kernels(); err != nil {
-		return err
+	if _, err := client.Kernels().Find(filter.NewNameFilter(name)); err == nil {
+		return metadata.Success(bo.newImage)
 	} else {
-		if k, err := allKernels.MatchSingle(name); k != nil && err == nil {
-			return metadata.Success(bo.newImage)
+		switch err.(type) {
+		case filterer.ErrAmbiguous, filterer.ErrNonexistent:
+			// With the NameFilter, both of these indicate success
+		default:
+			return err
 		}
 	}
 
@@ -91,7 +88,7 @@ func Import(bo *importOptions) error {
 		io, err := (&ImportKernelFlags{
 			Source: path.Join(tmpKernelDir, constants.KERNEL_FILE),
 			Name:   name,
-		}).NewImportKernelOptions(bo.resLoader)
+		}).NewImportKernelOptions()
 		if err != nil {
 			return err
 		}

@@ -22,6 +22,9 @@ type KernelClient interface {
 	// Find returns the Kernel matching the given filter, filters can
 	// match e.g. the Object's Name, UID or a specific property
 	Find(filter filterer.BaseFilter) (*api.Kernel, error)
+	// FindAll returns multiple Kernels matching the given filter, filters can
+	// match e.g. the Object's Name, UID or a specific property
+	FindAll(filter filterer.BaseFilter) ([]*api.Kernel, error)
 	// Delete deletes the Kernel with the given UID from the storage
 	Delete(uid meta.UID) error
 	// List returns a list of all Kernels available
@@ -57,16 +60,39 @@ func newKernelClient(s storage.Storage) KernelClient {
 	}
 }
 
-// Find returns a single Kernel based on a given Filter
+// Find returns a single Kernel based on the given Filter
 func (c *kernelClient) Find(filter filterer.BaseFilter) (*api.Kernel, error) {
 	object, err := c.filterer.Find(api.KernelKind, filter)
-	return object.(*api.Kernel), err
+	if err != nil {
+		return nil, err
+	}
+
+	return object.(*api.Kernel), nil
+}
+
+// FindAll returns multiple Kernels based on the given Filter
+func (c *kernelClient) FindAll(filter filterer.BaseFilter) ([]*api.Kernel, error) {
+	matches, err := c.filterer.FindAll(api.KernelKind, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	results := make([]*api.Kernel, 0, len(matches))
+	for _, item := range matches {
+		results = append(results, item.(*api.Kernel))
+	}
+
+	return results, nil
 }
 
 // Get returns the Kernel matching given UID from the storage
 func (c *kernelClient) Get(uid meta.UID) (*api.Kernel, error) {
 	object, err := c.storage.GetByID(meta.KindKernel, uid)
-	return object.(*api.Kernel), err
+	if err != nil {
+		return nil, err
+	}
+
+	return object.(*api.Kernel), nil
 }
 
 // Set saves the given Kernel into the persistent storage
@@ -86,10 +112,10 @@ func (c *kernelClient) List() ([]*api.Kernel, error) {
 		return nil, err
 	}
 
-	result := make([]*api.Kernel, 0, len(list))
+	results := make([]*api.Kernel, 0, len(list))
 	for _, item := range list {
-		result = append(result, item.(*api.Kernel))
+		results = append(results, item.(*api.Kernel))
 	}
 
-	return result, nil
+	return results, nil
 }

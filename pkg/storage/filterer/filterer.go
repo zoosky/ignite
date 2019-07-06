@@ -89,13 +89,14 @@ func (f *Filterer) FindAll(kind meta.Kind, filter BaseFilter) ([]meta.Object, er
 }
 
 func (f *Filterer) parseFilter(kind meta.Kind, filter BaseFilter) (sources []meta.Object, filterFunc filterFunc, metaObjects bool, err error) {
-	if metaFilter, ok := filter.(MetaFilter); ok {
+	// Parse ObjectFilters before MetaFilters, so ObjectFilters can embed MetaFilters
+	if objectFilter, ok := filter.(ObjectFilter); ok {
+		filterFunc = objectFilter.Filter
+		sources, err = f.storage.List(kind)
+	} else if metaFilter, ok := filter.(MetaFilter); ok {
 		filterFunc = metaFilter.FilterMeta
 		sources, err = f.storage.ListMeta(kind)
 		metaObjects = true
-	} else if objectFilter, ok := filter.(ObjectFilter); ok {
-		filterFunc = objectFilter.Filter
-		sources, err = f.storage.List(kind)
 	} else {
 		err = fmt.Errorf("invalid filter type: %T", filter)
 	}

@@ -191,11 +191,11 @@ func (s *GenericStorage) keyForObj(obj meta.Object) (string, error) {
 }
 
 func (s *GenericStorage) keyForID(kind meta.Kind, uid string) string {
-	return "/" + path.Join(kind.String(), uid)
+	return "/" + path.Join(kind.Lower(), uid)
 }
 
 func (s *GenericStorage) keyForKind(kind meta.Kind) string {
-	return "/" + kind.String()
+	return "/" + kind.Lower()
 }
 
 func (s *GenericStorage) gvkFromObj(obj runtime.Object) (*schema.GroupVersionKind, error) {

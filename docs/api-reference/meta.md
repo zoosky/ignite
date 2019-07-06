@@ -25,6 +25,7 @@
 * [type IPAddresses](#IPAddresses)
   * [func (i IPAddresses) String() string](#IPAddresses.String)
 * [type Kind](#Kind)
+  * [func (k Kind) Lower() string](#Kind.Lower)
   * [func (k Kind) String() string](#Kind.String)
   * [func (k Kind) Upper() string](#Kind.Upper)
 * [type Object](#Object)
@@ -201,6 +202,13 @@ const (
 
 
 
+### <a name="Kind.Lower">func</a> (Kind) [Lower](/src/target/meta.go?s=1244:1272#L65)
+``` go
+func (k Kind) Lower() string
+```
+
+
+
 ### <a name="Kind.String">func</a> (Kind) [String](/src/target/meta.go?s=995:1024#L49)
 ``` go
 func (k Kind) String() string
@@ -219,7 +227,7 @@ Returns a uppercase string representation of the Kind
 
 
 
-## <a name="Object">type</a> [Object](/src/target/meta.go?s=2270:2434#L106)
+## <a name="Object">type</a> [Object](/src/target/meta.go?s=2345:2509#L110)
 ``` go
 type Object interface {
     runtime.Object
@@ -248,7 +256,7 @@ extra GetName() and GetUID() methods from ObjectMeta
 
 
 
-## <a name="ObjectMeta">type</a> [ObjectMeta](/src/target/meta.go?s=1404:1542#L68)
+## <a name="ObjectMeta">type</a> [ObjectMeta](/src/target/meta.go?s=1479:1617#L72)
 ``` go
 type ObjectMeta struct {
     Name    string `json:"name"`
@@ -270,7 +278,7 @@ implement the Object interface
 
 
 
-### <a name="ObjectMeta.GetCreated">func</a> (\*ObjectMeta) [GetCreated](/src/target/meta.go?s=1980:2019#L95)
+### <a name="ObjectMeta.GetCreated">func</a> (\*ObjectMeta) [GetCreated](/src/target/meta.go?s=2055:2094#L99)
 ``` go
 func (o *ObjectMeta) GetCreated() *Time
 ```
@@ -279,7 +287,7 @@ GetCreated returns when the Object was created
 
 
 
-### <a name="ObjectMeta.GetName">func</a> (\*ObjectMeta) [GetName](/src/target/meta.go?s=1586:1623#L75)
+### <a name="ObjectMeta.GetName">func</a> (\*ObjectMeta) [GetName](/src/target/meta.go?s=1661:1698#L79)
 ``` go
 func (o *ObjectMeta) GetName() string
 ```
@@ -288,7 +296,7 @@ GetName returns the name of the Object
 
 
 
-### <a name="ObjectMeta.GetUID">func</a> (\*ObjectMeta) [GetUID](/src/target/meta.go?s=1785:1818#L85)
+### <a name="ObjectMeta.GetUID">func</a> (\*ObjectMeta) [GetUID](/src/target/meta.go?s=1860:1893#L89)
 ``` go
 func (o *ObjectMeta) GetUID() UID
 ```
@@ -297,7 +305,7 @@ GetUID returns the UID of the Object
 
 
 
-### <a name="ObjectMeta.SetCreated">func</a> (\*ObjectMeta) [SetCreated](/src/target/meta.go?s=2093:2133#L100)
+### <a name="ObjectMeta.SetCreated">func</a> (\*ObjectMeta) [SetCreated](/src/target/meta.go?s=2168:2208#L104)
 ``` go
 func (o *ObjectMeta) SetCreated(t *Time)
 ```
@@ -306,7 +314,7 @@ SetCreated returns when the Object was created
 
 
 
-### <a name="ObjectMeta.SetName">func</a> (\*ObjectMeta) [SetName](/src/target/meta.go?s=1683:1724#L80)
+### <a name="ObjectMeta.SetName">func</a> (\*ObjectMeta) [SetName](/src/target/meta.go?s=1758:1799#L84)
 ``` go
 func (o *ObjectMeta) SetName(name string)
 ```
@@ -315,7 +323,7 @@ SetName sets the name of the Object
 
 
 
-### <a name="ObjectMeta.SetUID">func</a> (\*ObjectMeta) [SetUID](/src/target/meta.go?s=1875:1911#L90)
+### <a name="ObjectMeta.SetUID">func</a> (\*ObjectMeta) [SetUID](/src/target/meta.go?s=1950:1986#L94)
 ``` go
 func (o *ObjectMeta) SetUID(uid UID)
 ```
@@ -377,7 +385,7 @@ func (p PortMappings) String() string
 
 
 
-## <a name="Size">type</a> [Size](/src/target/size.go?s=132:171#L11)
+## <a name="Size">type</a> [Size](/src/target/size.go?s=125:164#L10)
 ``` go
 type Size struct {
     datasize.ByteSize
@@ -392,17 +400,17 @@ Size specifies a common unit for data sizes
 
 
 
-### <a name="NewSizeFromBytes">func</a> [NewSizeFromBytes](/src/target/size.go?s=382:422#L25)
+### <a name="NewSizeFromBytes">func</a> [NewSizeFromBytes](/src/target/size.go?s=375:415#L24)
 ``` go
 func NewSizeFromBytes(bytes uint64) Size
 ```
 
-### <a name="NewSizeFromSectors">func</a> [NewSizeFromSectors](/src/target/size.go?s=473:517#L31)
+### <a name="NewSizeFromSectors">func</a> [NewSizeFromSectors](/src/target/size.go?s=466:510#L30)
 ``` go
 func NewSizeFromSectors(sectors uint64) Size
 ```
 
-### <a name="NewSizeFromString">func</a> [NewSizeFromString](/src/target/size.go?s=275:323#L20)
+### <a name="NewSizeFromString">func</a> [NewSizeFromString](/src/target/size.go?s=268:316#L19)
 ``` go
 func NewSizeFromString(str string) (Size, error)
 ```
@@ -410,7 +418,7 @@ func NewSizeFromString(str string) (Size, error)
 
 
 
-### <a name="Size.Add">func</a> (Size) [Add](/src/target/size.go?s=845:879#L47)
+### <a name="Size.Add">func</a> (Size) [Add](/src/target/size.go?s=838:872#L46)
 ``` go
 func (s Size) Add(other Size) Size
 ```
@@ -419,35 +427,35 @@ Add returns a copy, does not modify the receiver
 
 
 
-### <a name="Size.MarshalJSON">func</a> (\*Size) [MarshalJSON](/src/target/size.go?s=1131:1175#L68)
+### <a name="Size.MarshalJSON">func</a> (\*Size) [MarshalJSON](/src/target/size.go?s=1124:1168#L67)
 ``` go
 func (s *Size) MarshalJSON() ([]byte, error)
 ```
 
 
 
-### <a name="Size.Max">func</a> (Size) [Max](/src/target/size.go?s=1028:1062#L60)
+### <a name="Size.Max">func</a> (Size) [Max](/src/target/size.go?s=1021:1055#L59)
 ``` go
 func (s Size) Max(other Size) Size
 ```
 
 
 
-### <a name="Size.Min">func</a> (Size) [Min](/src/target/size.go?s=925:959#L52)
+### <a name="Size.Min">func</a> (Size) [Min](/src/target/size.go?s=918:952#L51)
 ``` go
 func (s Size) Min(other Size) Size
 ```
 
 
 
-### <a name="Size.Sectors">func</a> (\*Size) [Sectors](/src/target/size.go?s=583:614#L37)
+### <a name="Size.Sectors">func</a> (\*Size) [Sectors](/src/target/size.go?s=576:607#L36)
 ``` go
 func (s *Size) Sectors() uint64
 ```
 
 
 
-### <a name="Size.String">func</a> (\*Size) [String](/src/target/size.go?s=742:772#L42)
+### <a name="Size.String">func</a> (\*Size) [String](/src/target/size.go?s=735:765#L41)
 ``` go
 func (s *Size) String() string
 ```
@@ -456,7 +464,7 @@ Override ByteSize's default string implementation which results in .HR() without
 
 
 
-### <a name="Size.UnmarshalJSON">func</a> (\*Size) [UnmarshalJSON](/src/target/size.go?s=1274:1318#L74)
+### <a name="Size.UnmarshalJSON">func</a> (\*Size) [UnmarshalJSON](/src/target/size.go?s=1231:1275#L72)
 ``` go
 func (s *Size) UnmarshalJSON(b []byte) error
 ```
