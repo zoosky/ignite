@@ -8,11 +8,13 @@ import (
 
 // DynamicClient is an interface for accessing API types generically
 type DynamicClient interface {
-	// Get returns an Object based on the given filter, filters can
-	// match e.g. the Object's Name, UID or a specific property
-	Get(filter filterer.BaseFilter) (meta.Object, error)
+	// Get returns an Object matching the UID from the storage
+	Get(meta.UID) (meta.Object, error)
 	// Set saves an Object into the persistent storage
 	Set(meta.Object) error
+	// Find returns an Object based on the given filter, filters can
+	// match e.g. the Object's Name, UID or a specific property
+	Find(filter filterer.BaseFilter) (meta.Object, error)
 	// Delete deletes an Object from the storage
 	Delete(uid meta.UID) error
 	// List returns a list of all Objects available
@@ -52,14 +54,19 @@ func newDynamicClient(s storage.Storage, kind meta.Kind) DynamicClient {
 	}
 }
 
-// Get returns an Object based on a given Filter
-func (c *dynamicClient) Get(filter filterer.BaseFilter) (meta.Object, error) {
-	return c.filterer.Find(c.kind, filter)
+// Get returns an Object based the given UID
+func (c *dynamicClient) Get(uid meta.UID) (meta.Object, error) {
+	return c.storage.GetByID(c.kind, uid)
 }
 
 // Set saves an Object into the persistent storage
 func (c *dynamicClient) Set(resource meta.Object) error {
 	return c.storage.Set(resource)
+}
+
+// Find returns an Object based on a given Filter
+func (c *dynamicClient) Find(filter filterer.BaseFilter) (meta.Object, error) {
+	return c.filterer.Find(c.kind, filter)
 }
 
 // Delete deletes the Object from the storage

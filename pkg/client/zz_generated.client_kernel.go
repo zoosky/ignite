@@ -15,14 +15,16 @@ import (
 
 // KernelClient is an interface for accessing Kernel-specific API objects
 type KernelClient interface {
-	// Get returns an Object based on the given filter, filters can
-	// match e.g. the Object's Name, UID or a specific property
-	Get(filter filterer.BaseFilter) (*api.Kernel, error)
-	// Set saves an Object into the persistent storage
+	// Get returns the Kernel matching given UID from the storage
+	Get(meta.UID) (*api.Kernel, error)
+	// Set saves the given Kernel into persistent storage
 	Set(*api.Kernel) error
-	// Delete deletes an Object from the storage
+	// Find returns the Kernel matching the given filter, filters can
+	// match e.g. the Object's Name, UID or a specific property
+	Find(filter filterer.BaseFilter) (*api.Kernel, error)
+	// Delete deletes the Kernel with the given UID from the storage
 	Delete(uid meta.UID) error
-	// List returns a list of all Objects available
+	// List returns a list of all Kernels available
 	List() ([]*api.Kernel, error)
 }
 
@@ -55,11 +57,16 @@ func newKernelClient(s storage.Storage) KernelClient {
 	}
 }
 
-// Get returns a single Kernel based on a given Filter
-func (c *kernelClient) Get(filter filterer.BaseFilter) (kernel *api.Kernel, err error) {
+// Find returns a single Kernel based on a given Filter
+func (c *kernelClient) Find(filter filterer.BaseFilter) (*api.Kernel, error) {
 	object, err := c.filterer.Find(api.KernelKind, filter)
-	kernel = object.(*api.Kernel)
-	return
+	return object.(*api.Kernel), err
+}
+
+// Get returns the Kernel matching given UID from the storage
+func (c *kernelClient) Get(uid meta.UID) (*api.Kernel, error) {
+	object, err := c.storage.GetByID(meta.KindKernel, uid)
+	return object.(*api.Kernel), err
 }
 
 // Set saves the given Kernel into the persistent storage

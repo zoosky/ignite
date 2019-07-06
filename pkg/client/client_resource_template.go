@@ -17,14 +17,16 @@ import (
 
 // ResourceClient is an interface for accessing Resource-specific API objects
 type ResourceClient interface {
-	// Get returns an Object based on the given filter, filters can
-	// match e.g. the Object's Name, UID or a specific property
-	Get(filter filterer.BaseFilter) (*api.Resource, error)
-	// Set saves an Object into the persistent storage
+	// Get returns the Resource matching given UID from the storage
+	Get(meta.UID) (*api.Resource, error)
+	// Set saves the given Resource into persistent storage
 	Set(*api.Resource) error
-	// Delete deletes an Object from the storage
+	// Find returns the Resource matching the given filter, filters can
+	// match e.g. the Object's Name, UID or a specific property
+	Find(filter filterer.BaseFilter) (*api.Resource, error)
+	// Delete deletes the Resource with the given UID from the storage
 	Delete(uid meta.UID) error
-	// List returns a list of all Objects available
+	// List returns a list of all Resources available
 	List() ([]*api.Resource, error)
 }
 
@@ -57,11 +59,16 @@ func newResourceClient(s storage.Storage) ResourceClient {
 	}
 }
 
-// Get returns a single Resource based on a given Filter
-func (c *resourceClient) Get(filter filterer.BaseFilter) (resource *api.Resource, err error) {
+// Find returns a single Resource based on a given Filter
+func (c *resourceClient) Find(filter filterer.BaseFilter) (*api.Resource, error) {
 	object, err := c.filterer.Find(api.ResourceKind, filter)
-	resource = object.(*api.Resource)
-	return
+	return object.(*api.Resource), err
+}
+
+// Get returns the Resource matching given UID from the storage
+func (c *resourceClient) Get(uid meta.UID) (*api.Resource, error) {
+	object, err := c.storage.GetByID(meta.KindResource, uid)
+	return object.(*api.Resource), err
 }
 
 // Set saves the given Resource into the persistent storage

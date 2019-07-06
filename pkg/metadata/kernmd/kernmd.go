@@ -45,7 +45,7 @@ func (md *Kernel) ObjectPath() string {
 }
 
 func (md *Kernel) Load() (err error) {
-	md.Kernel, err = client.Kernels().Get(md.GetUID().String())
+	md.Kernel, err = client.Kernels().Get(md.GetUID())
 	return
 }
 

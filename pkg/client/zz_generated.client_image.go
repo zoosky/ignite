@@ -15,14 +15,16 @@ import (
 
 // ImageClient is an interface for accessing Image-specific API objects
 type ImageClient interface {
-	// Get returns an Object based on the given filter, filters can
-	// match e.g. the Object's Name, UID or a specific property
-	Get(filter filterer.BaseFilter) (*api.Image, error)
-	// Set saves an Object into the persistent storage
+	// Get returns the Image matching given UID from the storage
+	Get(meta.UID) (*api.Image, error)
+	// Set saves the given Image into persistent storage
 	Set(*api.Image) error
-	// Delete deletes an Object from the storage
+	// Find returns the Image matching the given filter, filters can
+	// match e.g. the Object's Name, UID or a specific property
+	Find(filter filterer.BaseFilter) (*api.Image, error)
+	// Delete deletes the Image with the given UID from the storage
 	Delete(uid meta.UID) error
-	// List returns a list of all Objects available
+	// List returns a list of all Images available
 	List() ([]*api.Image, error)
 }
 
@@ -55,11 +57,16 @@ func newImageClient(s storage.Storage) ImageClient {
 	}
 }
 
-// Get returns a single Image based on a given Filter
-func (c *imageClient) Get(filter filterer.BaseFilter) (image *api.Image, err error) {
+// Find returns a single Image based on a given Filter
+func (c *imageClient) Find(filter filterer.BaseFilter) (*api.Image, error) {
 	object, err := c.filterer.Find(api.ImageKind, filter)
-	image = object.(*api.Image)
-	return
+	return object.(*api.Image), err
+}
+
+// Get returns the Image matching given UID from the storage
+func (c *imageClient) Get(uid meta.UID) (*api.Image, error) {
+	object, err := c.storage.GetByID(meta.KindImage, uid)
+	return object.(*api.Image), err
 }
 
 // Set saves the given Image into the persistent storage

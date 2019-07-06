@@ -45,7 +45,7 @@ func (md *Image) ObjectPath() string {
 }
 
 func (md *Image) Load() (err error) {
-	md.Image, err = client.Images().Get(md.GetUID().String())
+	md.Image, err = client.Images().Get(md.GetUID())
 	return
 }
 

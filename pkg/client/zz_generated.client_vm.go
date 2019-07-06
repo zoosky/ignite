@@ -15,14 +15,16 @@ import (
 
 // VMClient is an interface for accessing VM-specific API objects
 type VMClient interface {
-	// Get returns an Object based on the given filter, filters can
-	// match e.g. the Object's Name, UID or a specific property
-	Get(filter filterer.BaseFilter) (*api.VM, error)
-	// Set saves an Object into the persistent storage
+	// Get returns the VM matching given UID from the storage
+	Get(meta.UID) (*api.VM, error)
+	// Set saves the given VM into persistent storage
 	Set(*api.VM) error
-	// Delete deletes an Object from the storage
+	// Find returns the VM matching the given filter, filters can
+	// match e.g. the Object's Name, UID or a specific property
+	Find(filter filterer.BaseFilter) (*api.VM, error)
+	// Delete deletes the VM with the given UID from the storage
 	Delete(uid meta.UID) error
-	// List returns a list of all Objects available
+	// List returns a list of all VMs available
 	List() ([]*api.VM, error)
 }
 
@@ -55,11 +57,16 @@ func newVMClient(s storage.Storage) VMClient {
 	}
 }
 
-// Get returns a single VM based on a given Filter
-func (c *vmClient) Get(filter filterer.BaseFilter) (vm *api.VM, err error) {
+// Find returns a single VM based on a given Filter
+func (c *vmClient) Find(filter filterer.BaseFilter) (*api.VM, error) {
 	object, err := c.filterer.Find(api.VMKind, filter)
-	vm = object.(*api.VM)
-	return
+	return object.(*api.VM), err
+}
+
+// Get returns the VM matching given UID from the storage
+func (c *vmClient) Get(uid meta.UID) (*api.VM, error) {
+	object, err := c.storage.GetByID(meta.KindVM, uid)
+	return object.(*api.VM), err
 }
 
 // Set saves the given VM into the persistent storage
